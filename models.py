@@ -27,7 +27,7 @@ class TimeSeries(models.Model):
 
         TODO use get instead and standard get execptions.
         """
-	try:
+        try:
             return self.time_series.get(is_canonical=True)
         except ObjectDoesNotExist:
             print "WARNING: %s has no canonical time point." % self.first
@@ -41,12 +41,14 @@ class TimeSeries(models.Model):
         except:
             pass
 
+    @property
     def start_date(self):
         try:
             self.first.date
         except:
             pass
 
+    @property
     def end_date(self):
         try:
             return self.last.date
@@ -62,9 +64,9 @@ class TimeSeries(models.Model):
         try:
             qs = self.time_series.all()
             if start_date:
-                qs = qs.filter(nodefile__date__gt=start_date)
+                qs = qs.filter(date__gt=start_date)
             if end_date:
-                qs = qs.filter(nodefile__date__lt=end_date)
+                qs = qs.filter(date__lt=end_date)
             return qs
         except:
             pass
@@ -76,16 +78,38 @@ class TimeSeries(models.Model):
             return 'id: %d' % self.id
 
     def MultipleCanonicalError(Exception):
-        pass
+        """Raised when time series has more than one canonical time point.
+
+        TODO: Make time series issue warning.
+        """
+        print "Multiple Canonical Error"
 
     class Meta:
         abstract = True
 
-class TimePoint(models.Model):
-
-
-class GenericNodeTimePoint(models.Model):
+class DatePointCanonical(models.Model):
     is_canonical = models.BooleanField(default=False)
+    date = models.DateField()
+
+    def get_next(self):
+        """ Returns the next DatePoint or None if the last in the series.
+
+        TODO: implement
+        """
+        pass
+
+    def get_previous(self):
+        """ Returns the next DatePoint or None if the last in the series.
+
+        TODO: implement
+        """
+        pass
+
+    class Meta:
+        ordering = ['date']
+
+'''
+class GenericNodeTimePoint(models.Model):
 
     raw_data = models.CharField(max_length=500)
     nodefile = models.ForeignKey("NodeFile",
@@ -193,3 +217,4 @@ class GenericNodeTimePoint(models.Model):
 
     class Meta:
         ordering = ['nodefile__date', 'number']
+'''
