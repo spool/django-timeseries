@@ -16,18 +16,28 @@ class SimpleTest(TestCase):
         """
         self.failUnlessEqual(1 + 1, 2)
 
-class InheritanceTest(TestCase):
+class BasicInheritanceTest(TestCase):
     def setUp(self):
         self.ts = TestTimeSeries.objects.create()
-        self.a = self.ts.add(
-                data=5, name="first", date=datetime.date.today())
-        print 'success'
+        self.today = datetime.date.today()
+        self.a = TestDatePoint.objects.create(
+                data=5, name="first", date=self.today,
+                time_series=self.ts)
 
     def testFirst(self):
         self.assertEqual(self.ts.first, self.a)
 
+    def testLast(self):
+        self.assertEqual(self.ts.last, self.a)
+
     def testCanonical(self):
         self.assertEqual(self.ts.canonical, self.a)
+
+    def testStartDate(self):
+        self.assertEqual(self.ts.start_date, self.today)
+
+    def testEndDate(self):
+        self.assertEqual(self.ts.end_date, self.today)
 
 __test__ = {"doctest": """
 Another way to test that 1 + 1 is equal to 2.

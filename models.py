@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 import datetime
 
 class TimeSeries(models.Model):
@@ -10,7 +11,7 @@ class TimeSeries(models.Model):
     @property
     def first(self):
         try:
-            return self.time_series.order_by('nodefile__date')[0]
+            return self.time_series.order_by('date')[0]
         except:
             pass
 
@@ -25,26 +26,27 @@ class TimeSeries(models.Model):
         Raises a MultipleCanonicalError if multiple objects
         have is_canonical = True
 
-        TODO use get instead and standard get execptions.
+        TODO: Change warning message to something proper.
         """
         try:
             return self.time_series.get(is_canonical=True)
         except ObjectDoesNotExist:
             print "WARNING: %s has no canonical time point." % self.first
+            return self.first
         except MultipleObjectsReturned:
             raise self.MultipleCanonicalError
 
     @property
     def last(self):
         try:
-            return self.time_series.order_by('-nodefile__date')[0]
+            return self.time_series.order_by('-date')[0]
         except:
             pass
 
     @property
     def start_date(self):
         try:
-            self.first.date
+            return self.first.date
         except:
             pass
 
@@ -107,6 +109,7 @@ class DatePointCanonical(models.Model):
 
     class Meta:
         ordering = ['date']
+        abstract = True
 
 '''
 class GenericNodeTimePoint(models.Model):
