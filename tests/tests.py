@@ -1,28 +1,31 @@
-"""
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
-"""
-
 from django.test import TestCase
-from time_series.tests.models import *
+from time_series.tests.models import TestTimeSeries, TestDatePoint
+from django.conf import settings
 import datetime
+from django.core.management import call_command
+from django.db.models import loading
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.failUnlessEqual(1 + 1, 2)
 
 class BasicInheritanceTest(TestCase):
     def setUp(self):
+        self.OLD_INSTALLED_APPS = settings.INSTALLED_APPS
+        settings.INSTALLED_APPS = (
+            'time_series',
+            'time_series.tests',
+        )
+        loading.cache.loaded = False
+        call_command('syncdb', verbosity=0)
+
         self.ts = TestTimeSeries.objects.create()
         self.today = datetime.date.today()
         self.a = TestDatePoint.objects.create(
                 data=5, name="first", date=self.today,
                 time_series=self.ts)
+
+    def tearDown(self):
+        settings.INSTALLED_APPS = self.OLD_INSTALLED_APPS
+        loading.cache.loaded = False
+        call_command('syncdb', verbosity=0)
 
     def testFirst(self):
         self.assertEqual(self.ts.first, self.a)
@@ -38,11 +41,4 @@ class BasicInheritanceTest(TestCase):
 
     def testEndDate(self):
         self.assertEqual(self.ts.end_date, self.today)
-
-__test__ = {"doctest": """
-Another way to test that 1 + 1 is equal to 2.
-
->>> 1 + 1 == 2
-True
-"""}
 
